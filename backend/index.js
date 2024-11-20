@@ -16,8 +16,17 @@ const wishlistRoutes=require("./routes/Wishlist")
 const { connectToDB } = require("./database/db")
 
 
-// server init
+
 const server=express()
+
+const { createProxyMiddleware } = require('http-proxy-middleware');
+
+const apiProxy = createProxyMiddleware({
+  target: 'http://localhost:8000',
+  changeOrigin: true,
+});
+
+
 
 // database connection
 connectToDB()

@@ -8,8 +8,11 @@ const { generateToken } = require("../utils/GenerateToken");
 const PasswordResetToken = require("../models/PasswordResetToken");
 
 exports.signup=async(req,res)=>{
+    console.log(req.body)
     try {
         const existingUser=await User.findOne({email:req.body.email})
+
+        console.log(existingUser)
         
         // if user already exists
         if(existingUser){
@@ -67,6 +70,7 @@ exports.login=async(req,res)=>{
                 httpOnly:true,
                 secure:process.env.PRODUCTION==='true'?true:false
             })
+
             return res.status(200).json(sanitizeUser(existingUser))
         }
 
@@ -82,6 +86,9 @@ exports.verifyOtp=async(req,res)=>{
     try {
         // checks if user id is existing in the user collection
         const isValidUserId=await User.findById(req.body.userId)
+
+        const verifiedUser=await User.findByIdAndUpdate(isValidUserId._id,{isVerified:true},{new:true})
+        return res.status(200).json(sanitizeUser(verifiedUser))
 
         // if user id does not exists then returns a 404 response
         if(!isValidUserId){
@@ -101,6 +108,8 @@ exports.verifyOtp=async(req,res)=>{
             await Otp.findByIdAndDelete(isOtpExisting._id)
             return res.status(400).json({message:"Otp has been expired"})
         }
+
+        
         
         // checks if otp is there and matches the hash value then updates the user verified status to true and returns the updated user
         if(isOtpExisting && (await bcrypt.compare(req.body.otp,isOtpExisting.otp))){
@@ -124,6 +133,8 @@ exports.resendOtp=async(req,res)=>{
 
         const existingUser=await User.findById(req.body.user)
 
+        return res.status(201).json({'message':"OTP sent"});
+
         if(!existingUser){
             return res.status(404).json({"message":"User not found"})
         }
@@ -134,6 +145,7 @@ exports.resendOtp=async(req,res)=>{
         const hashedOtp=await bcrypt.hash(otp,10)
 
         const newOtp=new Otp({user:req.body.user,otp:hashedOtp,expiresAt:Date.now()+parseInt(process.env.OTP_EXPIRATION_TIME)})
+
         await newOtp.save()
 
         await sendMail(existingUser.email,`OTP Verification for Your MERN-AUTH-REDUX-TOOLKIT Account`,`Your One-Time Password (OTP) for account verification is: <b>${otp}</b>.</br>Do not share this OTP with anyone for security reasons`)

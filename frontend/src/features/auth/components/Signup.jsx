@@ -123,8 +123,6 @@ export const Signup = () => {
                     </Stack>
 
                 </Stack>
-
-
         </Stack>
     </Stack>
   )

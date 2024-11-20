@@ -1,4 +1,5 @@
-import {axiosi} from '../../config/axios'
+import { axiosi } from '../../config/axios'
+import axios from 'axios'
 
 export const signup=async(cred)=>{
     try {
